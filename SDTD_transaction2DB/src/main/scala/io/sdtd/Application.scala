@@ -6,10 +6,8 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 
 object Application extends App {
 
-  // TODO: replace this hardcoded hosts list
-  val cassandraHosts = List("127.0.0.1")
+  val cassandraHosts = List(sys.env.getOrElse("CASSANDRA_CLUSTER_ENTRY_POINT", "127.0.0.1"))
 
-  // TODO: replace this hardcoded port
   val cassandraPort = 9042
 
   val env = StreamExecutionEnvironment.getExecutionEnvironment
