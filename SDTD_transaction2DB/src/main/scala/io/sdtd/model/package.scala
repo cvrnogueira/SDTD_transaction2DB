@@ -1,7 +1,5 @@
 package io
 
-import java.util.UUID
-
 import play.api.libs.json.{Json, Reads}
 
 package object sdtd {

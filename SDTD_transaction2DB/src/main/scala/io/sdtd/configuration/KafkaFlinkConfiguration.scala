@@ -21,8 +21,10 @@ case class KafkaFlinkConfiguration() {
   private def getKafkaConsumerProps = {
     val properties = new Properties()
 
+    val bootstrapHost = sys.env.getOrElse("KAFKA_CLUSTER_ENTRY_POINT", "127.0.0.1")
+
     properties.setProperty("group.id", "twitterTopicIn")
-    properties.setProperty("bootstrap.servers", "127.0.0.1:9092")
+    properties.setProperty("bootstrap.servers", s"$bootstrapHost:9092")
     properties.setProperty("max.poll.records", "5")
 
     properties

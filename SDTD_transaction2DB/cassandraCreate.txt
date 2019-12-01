@@ -2,15 +2,6 @@
 
 CREATE KEYSPACE IF NOT EXISTS sdtd WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
-CREATE TABLE IF NOT EXISTS cvrnogueira.twitterPayload (
-  tweet TEXT,
-  location TEXT,
-  from TEXT,
-  createdAt bigint,
-  counter bigint,
-  PRIMARY KEY(userId)
-);
-
 CREATE TABLE IF NOT EXISTS sdtd.twitterPayload (
     location TEXT,
     createdAt bigint,
