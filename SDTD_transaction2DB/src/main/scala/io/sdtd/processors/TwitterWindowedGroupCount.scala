@@ -10,7 +10,7 @@ object TwitterWindowedGroupCount {
 
   val EmptyLocationIdentifier = "Empty"
 
-  def pipe(env: StreamExecutionEnvironment, kafkaConsumer: FlinkKafkaConsumer010[String]): DataStream[TwitterPayload] = {
+  def filter(env: StreamExecutionEnvironment, kafkaConsumer: FlinkKafkaConsumer010[String]): DataStream[TwitterPayload] = {
     env
       // consumes and convert string tweet to
       // a tweet object
@@ -23,11 +23,18 @@ object TwitterWindowedGroupCount {
       .filter(_.isDefined)
       .map(_.get)
       .filter(t => EmptyLocationIdentifier != t.location)
+  }
+
+  def pipeGrouped(env: StreamExecutionEnvironment, kafkaConsumer: FlinkKafkaConsumer010[String]): DataStream[TwitterPayload] = {
+    filter(env, kafkaConsumer)
 
       // keep a time window buffer with all tweets grouped by
       // location and once this window times count grouped length
       .keyBy("location")
-      .timeWindow(Time.seconds(30))
+      .timeWindow(Time.seconds(5))
       .sum("counter")
   }
+
+  @inline
+  def pipeSingle(env: StreamExecutionEnvironment, kafkaConsumer: FlinkKafkaConsumer010[String]): DataStream[TwitterPayload] = filter(env, kafkaConsumer)
 }

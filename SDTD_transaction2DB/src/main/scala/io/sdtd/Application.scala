@@ -20,10 +20,12 @@ object Application extends App with LazyLogging {
   val env = StreamExecutionEnvironment.getExecutionEnvironment
 
   val asyncCounter = new AsyncCounterFetcher(cassandraHosts, cassandraPort)
+  val twitterGroupedSource = TwitterWindowedGroupCount.pipeGrouped(env, KafkaConfiguration.getTwitterKafkaConsumer)
+  val twitterGroupedEnrichedSource = TwitterMergeCount.pipe(twitterGroupedSource, asyncCounter)
+  val twitterGroupedSink = TwitterStoreSink.pipeGrouped(cassandraHosts, twitterGroupedEnrichedSource)
 
-  val twitterSource = TwitterWindowedGroupCount.pipe(env, KafkaConfiguration.getTwitterKafkaConsumer)
-  val twitterEnrichedSource = TwitterMergeCount.pipe(twitterSource, asyncCounter)
-  val twitterSink = TwitterStoreSink.pipe(cassandraHosts, twitterEnrichedSource)
+  val twitterSingleSource = TwitterWindowedGroupCount.pipeSingle(env, KafkaConfiguration.getTwitterKafkaConsumer)
+  val twitterSingleSink = TwitterStoreSink.pipeSingle(cassandraHosts, twitterGroupedEnrichedSource)
 
   val weatherSourceSink = WeatherSink.pipe(env, KafkaConfiguration.getWeatherKafkaConsumer, cassandraHosts)
 
