@@ -18,7 +18,7 @@ class AsyncCounterFetcher(host: List[String], port: Int) extends AsyncFunction[T
     .build()
     .connect()
 
-  lazy val prepared = session.prepare("SELECT mentions FROM sdtd.twitterpayload where location = ?")
+  lazy val prepared = session.prepare("SELECT mentions FROM sdtd.twitterpayload where location_sasi like ?")
 
   implicit lazy val ex = Executors.directExecutionContext()
 
@@ -27,7 +27,9 @@ class AsyncCounterFetcher(host: List[String], port: Int) extends AsyncFunction[T
       .map(_.asScala)
       .onComplete({
         case Success(r) => {
-          val count = r.headOption.map(t => t.getLong("mentions")).getOrElse(0L)
+
+          // accumulate all counters that make any reference to sasi index
+          val count = r.foldLeft(0L) { (acc, r) => acc + r.getLong("mentions") }
 
           resultFuture.complete(List((input, count)))
         }

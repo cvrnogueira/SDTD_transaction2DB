@@ -3,7 +3,7 @@ package io.sdtd
 import com.typesafe.scalalogging.LazyLogging
 import io.sdtd.configuration.{DatabaseMigration, KafkaConfiguration}
 import io.sdtd.processors._
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
+import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 
 object Application extends App with LazyLogging {
 
@@ -17,15 +17,19 @@ object Application extends App with LazyLogging {
 
   DatabaseMigration.migrate(cassandraHosts, cassandraPort)
 
-  val env = StreamExecutionEnvironment.getExecutionEnvironment
+  val env = StreamExecutionEnvironment.getExecutionEnvironment.enableCheckpointing()
+
+  val sourceStream = env.addSource(KafkaConfiguration.getTwitterKafkaConsumer)
 
   val asyncCounter = new AsyncCounterFetcher(cassandraHosts, cassandraPort)
-  val twitterGroupedSource = TwitterWindowedGroupCount.pipeGrouped(env, KafkaConfiguration.getTwitterKafkaConsumer)
+  val twitterGroupedSource = TwitterWindowedGroupCount.pipeGrouped(sourceStream)
   val twitterGroupedEnrichedSource = TwitterMergeCount.pipe(twitterGroupedSource, asyncCounter)
   val twitterGroupedSink = TwitterStoreSink.pipeGrouped(cassandraHosts, twitterGroupedEnrichedSource)
 
-  val twitterSingleSource = TwitterWindowedGroupCount.pipeSingle(env, KafkaConfiguration.getTwitterKafkaConsumer)
-  val twitterSingleSink = TwitterStoreSink.pipeSingle(cassandraHosts, twitterGroupedEnrichedSource)
+  val twitterSingleSource = TwitterWindowedGroupCount.pipeSingle(sourceStream)
+  val twitterSingleSink = TwitterStoreSink.pipeSingle(cassandraHosts, twitterSingleSource)
+
+  val twitterTopMentions = TwitterStoreSink.pipeTop(cassandraHosts, twitterGroupedEnrichedSource)
 
   val weatherSourceSink = WeatherSink.pipe(env, KafkaConfiguration.getWeatherKafkaConsumer, cassandraHosts)
 

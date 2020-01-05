@@ -13,6 +13,7 @@ object Dependencies {
     val flink = "1.6.1"
     val scalaLogging = "3.9.0"
     val cassandraDriver = "3.6.0"
+    val ahocorasick = "0.4.0"
   }
 
   val scalaTest = Seq("org.scalatest" %% "scalatest" % Version.scalaTest % Test)
@@ -30,9 +31,13 @@ object Dependencies {
     "org.apache.flink" %% "flink-scala" % Version.flink,
     "org.apache.flink" %% "flink-streaming-scala" % Version.flink,
     "org.apache.flink" %% "flink-clients" % Version.flink,
-    "org.apache.flink" %% "flink-connector-kafka-0.10" % Version.flink,
+    "org.apache.flink" %% "flink-connector-kafka-0.11" % Version.flink,
     "org.apache.flink" %% "flink-connector-cassandra" % Version.flink
   )
 
-  val all = scalaTest ++ logging ++ flink ++ playJSON
+  val ahocorasick = Seq(
+    "org.ahocorasick" % "ahocorasick" % Version.ahocorasick
+  )
+
+  val all = scalaTest ++ logging ++ flink ++ playJSON ++ ahocorasick
 }

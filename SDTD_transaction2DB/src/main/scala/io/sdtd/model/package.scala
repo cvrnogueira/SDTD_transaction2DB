@@ -11,7 +11,8 @@ package object sdtd {
     tweet: String,
     createdAt: Long,
     location: String,
-    counter: Long = 1
+    counter: Long = 1,
+    updatedAt: Long = 0
   )
 
   case class WeatherPayload(
